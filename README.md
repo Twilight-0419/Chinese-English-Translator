@@ -16,6 +16,15 @@ notebook/   experiments and exploration
 src/        source code (data pipeline, model, training, inference)
 ```
 
+## Data
+
+`data/zh-en.txt` holds 500,000 simple Chinese to English sentence pairs, one pair
+per line, separated by a tab. It is built from the OPUS `OpenSubtitles` corpus,
+filtered down to short complete sentences and fully converted to simplified
+Chinese. See [data/README.md](data/README.md) for the source, the filtering rules
+and the known limitations.
+
 ## Status
 
-Project scaffolding. Data pipeline, model, training, and inference code coming next.
+Data preparation is done (`src/prepare_data.py`). Model, training and inference
+code coming next.

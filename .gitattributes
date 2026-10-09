@@ -1,0 +1,3 @@
+# Keep line endings stable across platforms. The training data is parsed line by
+# line, so a CRLF checkout would leak a stray carriage return into every pair.
+* text=auto eol=lf
