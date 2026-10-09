@@ -29,7 +29,12 @@ using it commercially.
 
 1. Converts traditional Chinese to simplified Chinese with OpenCC (`t2s`). The
    source is mixed script, so this is required for a consistent vocabulary.
-2. Keeps only pairs that look like complete, simple sentences:
+2. Canonicalises punctuation on both sides through `src/text_norm.py`. The source
+   mixes full width and half width marks (`？` vs `?`, `！` vs `!`) and carries
+   encoding artefacts (`´`, `` ` ``, `︰`, `¶`, `§`, `♪`). Every punctuation
+   character is mapped onto the small canonical set documented below, and one
+   that has no canonical form is deleted.
+3. Keeps only pairs that look like complete, simple sentences:
    - 6 or more Chinese characters, English 3 to 12 words
    - both sides end in terminal punctuation, so neither was cut mid sentence
    - the Chinese starts with a character or digit, not with subtitle markup
@@ -41,9 +46,9 @@ using it commercially.
    - no names or other proper nouns, detected as a capitalised word inside the
      English sentence. Film dialogue is full of character names, and they teach
      a small model little while bloating the vocabulary.
-3. Deduplicates on the Chinese sentence, so each source sentence has one English
+4. Deduplicates on the Chinese sentence, so each source sentence has one English
    translation rather than a dozen competing variants.
-4. Ranks the survivors by simplicity and keeps the 500,000 shortest.
+5. Ranks the survivors by simplicity and keeps the shortest ones.
 
 Reproduce with:
 
@@ -52,18 +57,46 @@ python src/prepare_data.py --src-dir <raw en-zh dir> --out data/zh-en.txt \
     --order simplest --max-pairs 500000
 ```
 
+An already built file can be re-normalised in place without touching the raw
+corpus:
+
+```bash
+python src/normalize_dataset.py --path data/zh-en.txt
+```
+
+## Punctuation
+
+The whole dataset uses just these marks, plus the ASCII space:
+
+| | Characters |
+|---|---|
+| Chinese | `。` `，` `！` `？` `、` `：` `；` `（` `）` `《` `》` `…` `“` `”` `‘` `’` `%` |
+| English | `.` `,` `!` `?` `;` `:` `'` `"` `-` `(` `)` `%` `$` |
+
+The canonical set holds 17 Chinese marks and 13 English ones, down from 65 and 40
+in the raw source. Everything else was mapped onto one of these or deleted. In the
+data as shipped the Chinese side uses 16 of the 17 (`…` never survives the
+ellipsis filter) and the English side uses all 13. Two details worth knowing:
+
+- A `.` between digits survives, because it is a decimal point inside a numeral,
+  not sentence punctuation.
+- A `,` between digits is dropped, because Chinese does not write thousand
+  separators.
+
 ## Statistics
 
 | | |
 |---|---|
-| Pairs | 500,000 |
+| Pairs | 493,085 |
 | Chinese length | 6-16 characters, median 8 |
-| English length | 3-10 words, median 5 |
+| English length | 2-12 words, median 5 |
 | Traditional characters left | 0 |
 | Duplicate Chinese sentences | 0 |
 | Lines with a proper noun | 0 |
 | Chinese lines containing latin letters | 0 |
-| File size | 27.3 MB |
+| Chinese punctuation variants | 16 of the 17 canonical marks |
+| English punctuation variants | 13 of the 13 canonical marks |
+| File size | 27.2 MB |
 
 ## Known limitations
 

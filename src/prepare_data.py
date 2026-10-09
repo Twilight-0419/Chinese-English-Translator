@@ -20,6 +20,8 @@ import re
 import sys
 from pathlib import Path
 
+from text_norm import normalize_en, normalize_zh
+
 try:
     import opencc
 except ImportError:  # pragma: no cover - handled at runtime
@@ -230,8 +232,8 @@ def main() -> int:
         for zh_line, en_line in zip(fzh, fen):
             total += 1
             zh = zh_line.strip()
-            en = " ".join(en_line.split())
-            if not is_clean(zh) or not is_clean(en):
+            en = en_line.strip()
+            if not zh or not en:
                 continue
 
             # Convert first: OpenCC can map a traditional character onto a rare
@@ -242,6 +244,13 @@ def main() -> int:
                     converted += 1
                 zh = simplified
 
+            # Canonicalise punctuation before filtering so every later check
+            # sees the same small punctuation inventory.
+            zh = normalize_zh(zh)
+            en = normalize_en(en)
+
+            if not is_clean(zh) or not is_clean(en):
+                continue
             if not acceptable(zh, en, args):
                 continue
 
