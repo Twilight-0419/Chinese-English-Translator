@@ -13,7 +13,7 @@ English word, and the decoder produces the translation one token at a time.
 data/       datasets and preprocessing output
 models/     trained model checkpoints
 notebook/   experiments and exploration
-src/        source code (data pipeline, model, training, inference)
+src/        source code (model, training, inference)
 ```
 
 ## Data
@@ -26,5 +26,4 @@ and the known limitations.
 
 ## Status
 
-Data preparation is done (`src/prepare_data.py`). Model, training and inference
-code coming next.
+Data preparation is done. Model, training and inference code coming next.

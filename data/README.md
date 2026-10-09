@@ -25,15 +25,17 @@ using it commercially.
 
 ## How it was built
 
-`src/prepare_data.py` reads the two line-aligned source files, then:
+The two line-aligned source files were turned into this file by the steps below.
+The code that performed them is not part of this repository; this section is the
+specification of what was done, so the result is reproducible.
 
 1. Converts traditional Chinese to simplified Chinese with OpenCC (`t2s`). The
    source is mixed script, so this is required for a consistent vocabulary.
-2. Canonicalises punctuation on both sides through `src/text_norm.py`. The source
-   mixes full width and half width marks (`？` vs `?`, `！` vs `!`) and carries
-   encoding artefacts (`´`, `` ` ``, `︰`, `¶`, `§`, `♪`). Every punctuation
-   character is mapped onto the small canonical set documented below, and one
-   that has no canonical form is deleted.
+2. Canonicalises punctuation on both sides. The source mixes full width and half
+   width marks (`？` vs `?`, `！` vs `!`) and carries encoding artefacts (`´`,
+   `` ` ``, `︰`, `¶`, `§`, `♪`). Every punctuation character is mapped onto the
+   small canonical set documented below, and one that has no canonical form is
+   deleted.
 3. Keeps only pairs that look like complete, simple sentences:
    - 6 or more Chinese characters, English 3 to 12 words
    - both sides end in terminal punctuation, so neither was cut mid sentence
@@ -50,19 +52,9 @@ using it commercially.
    translation rather than a dozen competing variants.
 5. Ranks the survivors by simplicity and keeps the shortest ones.
 
-Reproduce with:
-
-```bash
-python src/prepare_data.py --src-dir <raw en-zh dir> --out data/zh-en.txt \
-    --order simplest --max-pairs 500000
-```
-
-An already built file can be re-normalised in place without touching the raw
-corpus:
-
-```bash
-python src/normalize_dataset.py --path data/zh-en.txt
-```
+Step 5 selected 500,000 pairs. Canonicalising the punctuation afterwards
+collapsed 6,915 rows that differed only in how the mark was written, which is how
+the file ended up at 493,085 pairs.
 
 ## Punctuation
 
