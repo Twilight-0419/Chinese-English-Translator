@@ -17,6 +17,9 @@ models/*.pt
 models/*.pth
 models/*.ckpt
 models/*.bin
+# The vocabulary is small and expensive to rebuild (~1 min of jieba over the
+# whole corpus), so unlike the checkpoints it is versioned.
+!models/word2index_and_word_count.pt
 *.log
 
 # Editors / OS
