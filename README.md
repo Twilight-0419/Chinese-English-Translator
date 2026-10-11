@@ -18,11 +18,11 @@ src/        source code (model, training, inference)
 
 ## Data
 
-`data/zh-en.txt` holds 493,085 simple Chinese to English sentence pairs, one pair
-per line, separated by a tab. It is built from the OPUS `OpenSubtitles` corpus,
-filtered down to short complete sentences and fully converted to simplified
-Chinese. See [data/README.md](data/README.md) for the source, the filtering rules
-and the known limitations.
+`data/zh-en.txt` holds 1,381,995 simple Chinese to English sentence pairs, one
+pair per line, separated by a tab. It is built from seven OPUS corpora, filtered
+down to short complete sentences and fully converted to simplified Chinese. See
+[data/README.md](data/README.md) for the sources, the filtering rules, the
+per-corpus yield and the known limitations.
 
 ## Model
 
@@ -42,9 +42,11 @@ unlike the checkpoints it is versioned in this repository at
 `models/word2index_and_word_count.pt` and arrives with a normal `git clone`.
 
 The model is a GRU encoder-decoder with additive attention, hidden size 256, a
-single layer and 19.1M parameters in total. It was trained on the full
-`data/zh-en.txt` with batch size 256, Adam at 1e-4, gradient clipping at
-max_norm 20 and a teacher forcing ratio of 0.5.
+single layer and 19.1M parameters in total. It was trained on the earlier
+493,085 pair version of `data/zh-en.txt` with batch size 256, Adam at 1e-4,
+gradient clipping at max_norm 20 and a teacher forcing ratio of 0.5. It matches
+the vocabulary shipped in this repository, so it keeps working, but it has not
+seen the newer ParaCrawl, WikiMatrix or TED2013 rows.
 
 `notebook/C2E_Translator.ipynb` defines the model classes. Load the weights after
 running the cells that build them:
@@ -58,5 +60,7 @@ decoder.eval()
 
 ## Status
 
-Data preparation is done and a first training run has finished. Inference code
-coming next.
+Data preparation is done, a first training run has finished, and inference works
+through `src/translator.py`. The dataset was expanded to roughly three times its
+earlier size, which means the next training run needs the vocabulary rebuilt
+first - see the note at the end of [data/README.md](data/README.md).
