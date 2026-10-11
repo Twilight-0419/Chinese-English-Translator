@@ -17,9 +17,10 @@ models/*.pt
 models/*.pth
 models/*.ckpt
 models/*.bin
-# The vocabulary is small and expensive to rebuild (~1 min of jieba over the
-# whole corpus), so unlike the checkpoints it is versioned.
-!models/word2index_and_word_count.pt
+# The vocabulary is not versioned either. It only works together with the
+# checkpoint it was built for (index 7 is "is" in one vocabulary and something
+# else in another), so it ships as an asset of the same release. Keeping it here
+# would also mean a fresh binary diff on every retrain.
 *.log
 
 # Editors / OS
