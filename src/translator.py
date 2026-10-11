@@ -78,7 +78,7 @@ decoder=C2E_Translator_Decoder_Attention(hidden_size=256,output_size=english_wor
 encoder.load_state_dict(torch.load(ROOT / 'models' / 'encoder.pt', map_location=device))
 decoder.load_state_dict(torch.load(ROOT / 'models' / 'decoder.pt', map_location=device))
 
-def translate(zh_sentence):
+def translate(zh_sentence,top_k):
     encoder.eval()
     decoder.eval()
 
@@ -96,11 +96,13 @@ def translate(zh_sentence):
         translated_words = []
         for _ in range(50):
             decoder_output, decoder_hidden, decoder_attention = decoder(decoder_input, decoder_hidden, encoder_outputs, mask)
-            topv, topi = decoder_output.topk(1)
-            next_word_index = topi.item()
+            topv, topi = decoder_output.topk(top_k)
+            probabilities = F.softmax(topv, dim=-1)
+            chosen_index = torch.multinomial(probabilities.squeeze(1), 1).item()
+            next_word_index = topi.squeeze(1)[0][chosen_index].item()
             if next_word_index == EOS_token:
                 break
             translated_words.append(english_index2word.get(next_word_index, 'UNK'))
-            decoder_input = topi.squeeze(-1).detach()
+            decoder_input =torch.tensor([[next_word_index]], dtype=torch.long).to(device)
 
     return ' '.join(translated_words)
