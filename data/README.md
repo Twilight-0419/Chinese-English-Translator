@@ -125,10 +125,13 @@ ellipsis filter) and the English side uses all 13. Two details worth knowing:
 
 ## Vocabulary compatibility
 
-`models/word2index_and_word_count.pt` was built from the earlier 493,085 pair
-version of this file. The vocabulary in the published model release matches it,
-so it is kept as is.
+The vocabulary that goes with the published model was built from the earlier
+493,085 pair version of this file, and it ships as an asset of that release
+rather than as a file in this repository. A vocabulary and a checkpoint only work
+together: index 7 means "is" in one and something else in another.
 
-Before training on this larger file, delete that `.pt` file and let the notebook
-rebuild it, otherwise every word that is new to the larger corpus is mapped to
-`<unk>`.
+Before training on this 1,381,995 pair file, rebuild the vocabulary from it.
+Delete any local `models/word2index_and_word_count.pt` and let the notebook
+recreate it, otherwise every word that is new to the larger corpus maps to
+`<unk>`. The rebuilt vocabulary will be noticeably larger, which also means a
+larger embedding layer and a slower training run.

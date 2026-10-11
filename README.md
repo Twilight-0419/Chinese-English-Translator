@@ -36,10 +36,14 @@ delta-compress and would keep in the history forever.
 |---|---:|---|
 | `encoder.pt` | 27 MB | `state_dict()` for the encoder |
 | `decoder.pt` | 46 MB | `state_dict()` for the attention decoder |
+| `word2index_and_word_count.pt` | 0.9 MB | the matching vocabulary |
 
-Download both into `models/`. The vocabulary is small and slow to rebuild, so
-unlike the checkpoints it is versioned in this repository at
-`models/word2index_and_word_count.pt` and arrives with a normal `git clone`.
+Download all three into `models/`. The vocabulary ships with the release because
+it has to match the checkpoint: index 7 means "is" in this vocabulary and would
+mean something else in a vocabulary rebuilt from a different corpus. Rebuilding
+it from the current 1.38M pair dataset produces a different, larger vocabulary,
+which is the right thing for a new training run but will not load into this
+checkpoint.
 
 The model is a GRU encoder-decoder with additive attention, hidden size 256, a
 single layer and 19.1M parameters in total. It was trained on the earlier
