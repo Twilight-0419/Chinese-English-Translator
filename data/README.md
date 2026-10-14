@@ -1,20 +1,19 @@
-# Dataset: `zh-en.txt`
+# 数据集：`zh-en.txt`
 
-Chinese to English sentence pairs, one pair per line, the two sides separated by a
-single tab character:
+中英句对，每行一条，两侧用一个制表符分隔：
 
 ```
 中文句子	English sentence
 ```
 
-Encoding is UTF-8 without BOM, line endings are LF.
+编码为 UTF-8 无 BOM，换行符是 LF。
 
-## Sources
+## 来源
 
-Built from seven [OPUS](https://opus.nlpl.eu/) corpora (`moses` release, `en-zh`
-direction). Download sizes and how many pairs each one contributed:
+由七个 [OPUS](https://opus.nlpl.eu/) 语料构建（`moses` 版本，`en-zh` 方向）。
+下载体积和各自贡献的句对数：
 
-| corpus | version | downloaded | pairs in source | pairs kept |
+| 语料 | 版本 | 下载体积 | 原始句对 | 通过筛选 |
 |---|---|---:|---:|---:|
 | ParaCrawl | v9 | 1246 MB | 14,170,869 | 945,656 |
 | OpenSubtitles | v2016 | 285 MB | 9,304,777 | 823,126 |
@@ -24,131 +23,102 @@ direction). Download sizes and how many pairs each one contributed:
 | wikimedia | v20260327 | 86 MB | 471,224 | 544 |
 | News-Commentary | v16 | 28 MB | 125,996 | 108 |
 | XLEnt | v1.1 | 165 MB | 6,292,330 | 0 |
-| **total** | | | | **1,848,277** |
+| **合计** | | | | **1,848,277** |
 
-XLEnt contributes nothing: it is a Wiktionary-derived lexicon rather than a
-sentence corpus, so none of it satisfies the sentence filters below. The news and
-Wikipedia corpora contribute very little because their sentences are far longer
-than the length window allows.
+XLEnt 一对都没贡献：它是从维基词典提取的词条，不是句子语料，所以没有一条能通过下面的
+句子筛选。新闻和维基类语料贡献极少，因为它们的句子远长于长度窗口允许的范围。
 
-OPUS does not attach a single standard open licence to these corpora. Check the
-OPUS and upstream terms before redistributing this data or using it commercially.
+OPUS 没有给这些语料附加统一的开源许可。重新分发或在商业项目里使用之前，请查阅 OPUS
+和上游的条款。
 
-## How it was built
+## 加工流程
 
-The two line-aligned source files were turned into this file by the steps below.
-The code that performed them is not part of this repository; this section is the
-specification of what was done, so the result is reproducible.
+下面的步骤把两个按行对齐的原始文件变成了本文件。执行它们的代码不在本仓库里，这一节是
+「做了什么」的规格说明，结果可复现。
 
-1. Converts traditional Chinese to simplified Chinese with OpenCC (`t2s`). The
-   source is mixed script, so this is required for a consistent vocabulary.
-2. Canonicalises punctuation on both sides. The source mixes full width and half
-   width marks (`？` vs `?`, `！` vs `!`) and carries encoding artefacts (`´`,
-   `` ` ``, `︰`, `¶`, `§`, `♪`). Every punctuation character is mapped onto the
-   small canonical set documented below, and one that has no canonical form is
-   deleted.
-3. Keeps only pairs that look like complete, simple sentences:
-   - 6 or more Chinese characters, English 3 to 12 words
-   - both sides end in terminal punctuation, so neither was cut mid sentence
-   - the Chinese starts with a character or digit, not with subtitle markup
-     (`#`, `(德语)`, `**`, a stray `,` or `.`)
-   - no leading speaker markers, no ellipsis, no `...`, no leftover quote marks
-   - no stray latin letters inside the Chinese side
-   - only characters that belong in Chinese or English text (this drops the
-     mis-encoded subtitle lines that leak kana or symbol junk)
-   - no names or other proper nouns, detected as a capitalised word inside the
-     English sentence. Film dialogue is full of character names, and they teach
-     a small model little while bloating the vocabulary.
-4. Deduplicates on the Chinese sentence, so each source sentence has one English
-   translation rather than a dozen competing variants.
-5. Drops rows whose Chinese contains runs of repeated punctuation (`。。`, `，，`).
-   The original rule already rejected `...`, but web-crawled text writes ellipses
-   with full width stops, and 23,915 rows slipped through.
-6. Ranks the survivors by simplicity and keeps the shortest ones first.
+1. 用 OpenCC（`t2s`）把繁体中文转成简体。源数据繁简混排，为了词表一致必须做这一步。
+2. 统一两侧的标点。源数据混用全角和半角（`？` vs `?`、`！` vs `!`），还夹着编码残留
+   （`´`、`` ` ``、`︰`、`¶`、`§`、`♪`）。每个标点字符都映射到下面文档里的规范集合，
+   没有对应规范形式的直接删除。
+3. 只保留看起来完整、简单的句子：
+   - 中文 6 个字以上，英文 3 到 12 个词
+   - 两侧都以句末标点结尾，确保都没被从中间截断
+   - 中文以汉字或数字开头，不是字幕标记（`#`、`(德语)`、`**`、多余的 `,` 或 `.`）
+   - 没有行首说话人标记、没有省略号、没有 `...`、没有残留的引号
+   - 中文侧没有混入拉丁字母
+   - 只保留属于中英文的字符（这一步会去掉编码错乱、混进假名或符号垃圾的字幕行）
+   - 没有人名等专有名词，判定方式是英文字句中间出现了大写词。影视对话里全是人名，
+     它们对一个小模型没什么可教的，却会撑大词表。
+4. 按中文句子去重，保证每句中文只有一个英文译法，而不是十几个互相竞争的版本。
+5. 丢掉中文里含连续标点的行（`。。`、`，，`）。原来的规则已经挡掉了 `...`，但网页
+   爬取来的文本用全角句号写省略号，有 23,915 行溜了进来。
+6. 按简单程度排序，优先保留最短的。
 
-The final file is capped at 103,000,000 bytes because GitHub rejects any single
-file above 100 MiB (104,857,600 bytes). Because pairs are ordered by simplicity,
-the cap removes the longest sentences at the tail. Together the punctuation rule
-and the cap turn the 1,848,277 filtered pairs into the 1,381,995 shipped here.
+最终文件限制在 103,000,000 字节以内，因为 GitHub 拒绝任何超过 100 MiB
+（104,857,600 字节）的单个文件。由于句对按简单程度排序，这个上限砍掉的是尾部最长的
+句子。标点规则和体积上限合起来，把通过筛选的 1,848,277 对变成这里发布的 1,381,995 对。
 
-## Punctuation
+## 标点
 
-The whole dataset uses just these marks, plus the ASCII space:
+整个数据集只使用下面这些标记，外加 ASCII 空格：
 
-| | Characters |
+| | 字符 |
 |---|---|
-| Chinese | `。` `，` `！` `？` `、` `：` `；` `（` `）` `《` `》` `…` `“` `”` `‘` `’` `%` |
-| English | `.` `,` `!` `?` `;` `:` `'` `"` `-` `(` `)` `%` `$` |
+| 中文 | `。` `，` `！` `？` `、` `：` `；` `（` `）` `《` `》` `…` `“` `”` `‘` `’` `%` |
+| 英文 | `.` `,` `!` `?` `;` `:` `'` `"` `-` `(` `)` `%` `$` |
 
-The canonical set holds 17 Chinese marks and 13 English ones, down from 65 and 40
-in the raw source. Everything else was mapped onto one of these or deleted. In the
-data as shipped the Chinese side uses 16 of the 17 (`…` never survives the
-ellipsis filter) and the English side uses all 13. Two details worth knowing:
+规范集合包含 17 个中文标记和 13 个英文标记，比原始数据的 65 个和 40 个少得多。其余全部
+被映射到其中之一或删除。实际发布的数据里，中文侧用到 17 个中的 16 个（`…` 永远过不了
+省略号筛选），英文侧 13 个全用到。两个值得知道的细节：
 
-- A `.` between digits survives, because it is a decimal point inside a numeral,
-  not sentence punctuation.
-- A `,` between digits is dropped, because Chinese does not write thousand
-  separators.
+- 数字之间的 `.` 会保留，因为它是数字里的小数点，不是句子标点。
+- 数字之间的 `,` 会被删除，因为中文不写千分位逗号。
 
-## Statistics
+## 统计
 
 | | |
 |---|---|
-| Pairs | 1,381,995 |
-| Chinese length | 6-19 characters, median 10 |
-| English length | 3-12 words, median 7 |
-| Traditional characters left | 0 |
-| Duplicate Chinese sentences | 0 |
-| Lines with a proper noun | 0 |
-| Chinese lines containing latin letters | 0 |
-| Chinese punctuation variants | 18, of which one is the decimal point |
-| English punctuation variants | 13 of the 13 canonical marks |
-| File size | 98.2 MiB (103,000,073 bytes) |
+| 句对数 | 1,381,995 |
+| 中文长度 | 6-19 个字符，中位 10 |
+| 英文长度 | 3-12 个词，中位 7 |
+| 残留繁体字 | 0 |
+| 重复的中文句子 | 0 |
+| 含专有名词的行 | 0 |
+| 中文含拉丁字母的行 | 0 |
+| 中文标点种类 | 18 种，其中一种是小数点 |
+| 英文标点种类 | 13 种，规范集合全用到 |
+| 文件大小 | 98.2 MiB（103,000,073 字节） |
 
-## Known limitations
+## 已知缺陷
 
-- Subtitle data is noisy. Filtering removed the names, the truncated lines and
-  the badly encoded ones, but a loose or wrong alignment still survives in
-  roughly one pair in six or eight. This is inherent to OpenSubtitles-derived
-  corpora and cannot be removed by text filters alone.
-- The corpus is now a mix of domains: film and TV dialogue (OpenSubtitles),
-  web-crawled text (ParaCrawl), encyclopedic prose (WikiMatrix) and talks
-  (TED2013). That widens the vocabulary but also the style, so expect the model
-  to be mediocre everywhere rather than good on one domain.
-- ParaCrawl is web text and its alignment quality is uneven. A few rows still
-  carry paragraph numbers or navigation fragments from the source pages.
-- Selecting the shortest sentences removes long, complex constructions, which is
-  what makes this set easy to train on, but it also biases the data towards short
-  conversational turns.
-- The text is film and TV dialogue, so it contains informal language, slang and
-  profanity.
+- 字幕数据有噪声。筛选去掉了人名、截断的行和编码错乱的行，但仍有大约每 6～8 对里有
+  1 对对齐松散或错误。这是 OpenSubtitles 类语料的固有属性，纯文本筛选清不掉。
+- 语料现在是多个领域的混合：影视对话（OpenSubtitles）、网页爬取文本（ParaCrawl）、
+  百科文风（WikiMatrix）和演讲（TED2013）。这拓宽了词汇，也拓宽了文风，所以模型在
+  每个领域都只是中等水平，而不是在某一个领域表现很好。
+- ParaCrawl 是网页文本，对齐质量参差不齐。少数行还带着源页面的段落编号或导航碎片。
+- 挑选最短的句子去掉了长而复杂的结构，这让数据集容易训练，但也让数据偏向短对话。
+- 文本是影视对话，所以包含口语、俚语和脏话。
 
-## Vocabulary compatibility
+## 词表兼容性
 
-A vocabulary and a checkpoint only work together: index 7 means "is" in one and
-something else in another. The vocabulary is therefore never committed here, it
-ships as an asset of the release that carries its checkpoint. `v0.2` was built
-from this file; `v0.1` was built from the earlier 493,085 pair version and does
-not match it.
+词表和权重是绑定的：索引 7 在这份词表里是 "is"，换一份就是别的词。因此词表从不提交到
+本仓库，而是作为承载对应权重的那个 Release 的附件发布。`v0.2` 是从本文件构建的；
+`v0.1` 是从更早的 493,085 对版本构建的，和本文件不匹配。
 
-To train on this file, delete any local `models/word2index_and_word_count.pt` and
-let the notebook rebuild it, otherwise every word that is new to the larger
-corpus maps to `<unk>`.
+要在这个文件上训练，先删掉本地的 `models/word2index_and_word_count.pt`，让 notebook
+重新构建，否则所有对更大语料来说是新的词都会被映射成 `<unk>`。
 
-The notebook keeps a word only when it appears at least 8 times in Chinese and 5
-times in English. Those cut-offs matter more than they look: tripling the corpus
-while leaving them unchanged would have grown the vocabulary from 26k/22k to
-68k/51k, because more rare words clear a fixed threshold on more data. The table
-below is measured on this file:
+notebook 只保留中文出现 8 次以上、英文出现 5 次以上的词。这两个阈值比看起来重要：在把
+语料扩大三倍的同时不改阈值，词表会从 2.6 万 / 2.2 万涨到 6.8 万 / 5.1 万，因为更多
+稀有词能在更多数据上跨过固定的门槛。下表是在本文件上实测的：
 
-| Chinese cut-off | vocabulary | tokens covered | English cut-off | vocabulary | tokens covered |
+| 中文阈值 | 词表 | token 覆盖率 | 英文阈值 | 词表 | token 覆盖率 |
 |---:|---:|---:|---:|---:|---:|
 | 3 | 67,753 | 98.88% | 2 | 50,577 | 99.64% |
 | **8** | **35,445** | **97.61%** | **5** | **29,754** | **99.17%** |
 | 10 | 30,688 | 97.24% | 10 | 20,437 | 98.64% |
 | 20 | 19,370 | 95.86% | 20 | 14,033 | 97.89% |
 
-The English side is cut less aggressively than the Chinese one on purpose: English
-is the decoder output, so a word dropped there is a `<unk>` the reader actually
-sees in the translation, while a dropped Chinese word only costs the encoder some
-information it can partly route around.
+英文侧砍得比中文侧轻，这是有意的：英文是解码器的输出，那里丢一个词就是读者会在译文里
+直接看到的 `<unk>`；而中文丢一个词只是让编码器少一点信息，它多少能绕过去。
