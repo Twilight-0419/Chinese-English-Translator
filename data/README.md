@@ -125,15 +125,15 @@ ellipsis filter) and the English side uses all 13. Two details worth knowing:
 
 ## Vocabulary compatibility
 
-The vocabulary that goes with the published model was built from the earlier
-493,085 pair version of this file, and it ships as an asset of that release
-rather than as a file in this repository. A vocabulary and a checkpoint only work
-together: index 7 means "is" in one and something else in another.
+A vocabulary and a checkpoint only work together: index 7 means "is" in one and
+something else in another. The vocabulary is therefore never committed here, it
+ships as an asset of the release that carries its checkpoint. `v0.2` was built
+from this file; `v0.1` was built from the earlier 493,085 pair version and does
+not match it.
 
-Before training on this 1,381,995 pair file, rebuild the vocabulary from it.
-Delete any local `models/word2index_and_word_count.pt` and let the notebook
-recreate it, otherwise every word that is new to the larger corpus maps to
-`<unk>`.
+To train on this file, delete any local `models/word2index_and_word_count.pt` and
+let the notebook rebuild it, otherwise every word that is new to the larger
+corpus maps to `<unk>`.
 
 The notebook keeps a word only when it appears at least 8 times in Chinese and 5
 times in English. Those cut-offs matter more than they look: tripling the corpus

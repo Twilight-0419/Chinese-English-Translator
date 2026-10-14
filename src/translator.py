@@ -78,7 +78,7 @@ decoder=C2E_Translator_Decoder_Attention(hidden_size=256,output_size=english_wor
 encoder.load_state_dict(torch.load(ROOT / 'models' / 'encoder.pt', map_location=device))
 decoder.load_state_dict(torch.load(ROOT / 'models' / 'decoder.pt', map_location=device))
 
-def translate(zh_sentence,top_k=2,repetition_penalty=1.5):
+def translate(zh_sentence,top_k=1,repetition_penalty=2.0):
     encoder.eval()
     decoder.eval()
 
