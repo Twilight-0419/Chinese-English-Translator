@@ -133,5 +133,22 @@ together: index 7 means "is" in one and something else in another.
 Before training on this 1,381,995 pair file, rebuild the vocabulary from it.
 Delete any local `models/word2index_and_word_count.pt` and let the notebook
 recreate it, otherwise every word that is new to the larger corpus maps to
-`<unk>`. The rebuilt vocabulary will be noticeably larger, which also means a
-larger embedding layer and a slower training run.
+`<unk>`.
+
+The notebook keeps a word only when it appears at least 8 times in Chinese and 5
+times in English. Those cut-offs matter more than they look: tripling the corpus
+while leaving them unchanged would have grown the vocabulary from 26k/22k to
+68k/51k, because more rare words clear a fixed threshold on more data. The table
+below is measured on this file:
+
+| Chinese cut-off | vocabulary | tokens covered | English cut-off | vocabulary | tokens covered |
+|---:|---:|---:|---:|---:|---:|
+| 3 | 67,753 | 98.88% | 2 | 50,577 | 99.64% |
+| **8** | **35,445** | **97.61%** | **5** | **29,754** | **99.17%** |
+| 10 | 30,688 | 97.24% | 10 | 20,437 | 98.64% |
+| 20 | 19,370 | 95.86% | 20 | 14,033 | 97.89% |
+
+The English side is cut less aggressively than the Chinese one on purpose: English
+is the decoder output, so a word dropped there is a `<unk>` the reader actually
+sees in the translation, while a dropped Chinese word only costs the encoder some
+information it can partly route around.
